@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 type HttpError struct {
@@ -19,15 +21,32 @@ func GetServerResponse() (string, error) {
 	return "", &HttpError{401, "GET"}
 }
 
-func main() {
-	// Handle server response
-	response, err := GetServerResponse()
+func throwAnotherError() error {
+	return errors.New("threw another error")
+}
+
+func throwError() error {
+	err := throwAnotherError()
 	if err != nil {
-		fmt.Println(err)
-		// errval returns a pointer to the instance of err as HttpError
-		errval := err.(*HttpError)
-		fmt.Printf("erroring method %v", errval.httpMethod)
+		return errors.Wrap(err, "Error occurred while processing function throwError")
+	}
+	return nil
+}
+
+func main() {
+	err := throwError()
+	if err != nil {
+		logrus.Error("Error occurred:", fmt.Sprintf("%+v", err))
 	} else {
-		fmt.Printf("server response %v", response)
+		// Handle server response
+		response, err := GetServerResponse()
+		if err != nil {
+			fmt.Println(err)
+			// errval returns a pointer to the instance of err as HttpError
+			errval := err.(*HttpError)
+			fmt.Printf("erroring method %v", errval.httpMethod)
+		} else {
+			fmt.Printf("server response %v", response)
+		}
 	}
 }
