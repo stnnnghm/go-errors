@@ -4,20 +4,30 @@ import (
 	"fmt"
 )
 
-// CustomError will be type error
-type CustomError struct{}
+type HttpError struct {
+	status     int
+	httpMethod string
+}
 
-// Error satisfies error interface
-func (custErr *CustomError) Error() string {
-	return "Error!"
+// HttpError implements Error method
+func (httpError *HttpError) Error() string {
+	return fmt.Sprintf("Request %v failed. Server returned %v status", httpError.httpMethod, httpError.status)
+}
+
+func GetServerResponse() (string, error) {
+	// return mocked error
+	return "", &HttpError{401, "GET"}
 }
 
 func main() {
-	// create error
-	err := &CustomError{}
-
-	fmt.Println(err)
-
-	fmt.Printf("Type of err is %T \n", err)
-	fmt.Printf("Value of err is %#v \n", err)
+	// Handle server response
+	response, err := GetServerResponse()
+	if err != nil {
+		fmt.Println(err)
+		// errval returns a pointer to the instance of err as HttpError
+		errval := err.(*HttpError)
+		fmt.Printf("erroring method %v", errval.httpMethod)
+	} else {
+		fmt.Printf("server response %v", response)
+	}
 }
